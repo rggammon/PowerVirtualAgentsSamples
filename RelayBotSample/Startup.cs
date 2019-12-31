@@ -9,6 +9,7 @@ using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.PowerVirtualAgents.Samples.RelayBotSample.Bots;
+using SampleBot.Configurations;
 
 namespace Microsoft.PowerVirtualAgents.Samples.RelayBotSample
 {
@@ -25,6 +26,10 @@ namespace Microsoft.PowerVirtualAgents.Samples.RelayBotSample
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            // Configure SetSpeakMiddleware
+            var setSpeakMiddlewareSection = Configuration.GetSection("SetSpeakMiddleware");
+            services.Configure<SetSpeakMiddlewareConfiguration>(setSpeakMiddlewareSection);
 
             // Create the Bot Framework Adapter with error handling enabled.
             services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
