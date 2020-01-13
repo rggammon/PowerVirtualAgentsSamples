@@ -1,0 +1,258 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "pvaBotId": {
+        "type": "string",
+        "metadata": {
+          "description": "Power Virtual Agent Bot Id"
+        }
+      },
+      "pvaBotName": {
+        "type": "string",
+        "metadata": {
+          "description": "Power Virtual Agent Bot Name"
+        }
+      },
+      "pvaBotTenantId": {
+        "type": "string",
+        "metadata": {
+          "description": "Power Virtual Agent Bot Tenant Id"
+        }
+      },
+      "name": {
+        "type": "string",
+        "metadata": {
+          "description": "Base name of the resource such as web app name and app service plan"
+        },
+        "minLength": 3,
+        "maxLength": 17
+      },
+      "webAppSku": {
+        "type": "string",
+        "defaultValue": "S1",
+        "metadata": {
+          "description": "The SKU of App Service Plan, by default is Standard S1"
+        }
+      },
+      "speechServiceSku": {
+        "type": "string",
+        "defaultValue": "S0",
+        "metadata": {
+          "description": "The SKU of Cognitive Speech Service, by default is Standard S0"
+        }
+      },
+      "storageAccountType": {
+        "type": "string",
+        "defaultValue": "Standard_LRS",
+        "metadata": {
+          "description": "Storage account type"
+        }
+      },
+      "location": {
+        "type": "string",
+         "allowedValues": [
+          "westus",
+          "westus2",
+          "eastus",
+          "eastus2",
+          "westeurope",
+          "northeurope",
+          "southeastasia"
+        ],
+        "metadata": {
+          "description": "Location for all resources"
+        }
+      },
+      "repoUrl": {
+        "type": "string",
+        "defaultValue": "https://github.com/rggammon/PowerVirtualAgentsSamples.git",
+        "metadata": {
+          "description": "The URL for the GitHub repository that contains the project to deploy."
+        }
+      },
+      "branch": {
+        "type": "string",
+        "defaultValue": "stable",
+        "metadata": {
+          "description": "The branch of the GitHub repository to use."
+        }
+      },
+      "uniquenessSuffix": {
+        "type": "string",
+        "metadata": {
+          "description": "A suffix to append to resource names, to avoid collisions with existing resources during deployment."
+        }
+      },
+      "groupName": {
+        "type": "string",
+        "metadata": {
+          "description": "The name of the resource group to deploy to."
+        }
+      }
+    },
+    "variables": {
+      "dashSuffix": "[concat('-', parameters('uniquenessSuffix'))]",
+      "webAppName": "[concat(parameters('name'), '-webapp', variables('dashSuffix'))]",
+      "appServicePlanName": "[concat(parameters('name'), '-plan', variables('dashSuffix'))]",
+      "speechServiceName": "[concat(parameters('name'), '-speech', variables('dashSuffix'))]",
+      "appInsightsName": "[concat(parameters('name'), '-insights', variables('dashSuffix'))]",
+      "opInsightsName": "[concat(parameters('name'), '-monitor', variables('dashSuffix'))]",
+      "storageAccountName": "[concat(parameters('name'), parameters('uniquenessSuffix'))]",
+      "keyVaultName": "[concat(parameters('name'), parameters('uniquenessSuffix'))]"
+    },
+    "resources": [
+      {
+        "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+        "name": "[parameters('name')]",
+        "apiVersion": "2018-11-30",
+        "location": "[parameters('location')]"
+      },
+      {
+        "type": "Microsoft.CognitiveServices/accounts",
+        "apiVersion": "2017-04-18",
+        "name": "[variables('speechServiceName')]",
+        "location": "[parameters('location')]",
+        "sku": {
+          "name": "[parameters('speechServiceSku')]"
+        },
+        "kind": "SpeechServices",
+        "properties": {
+        }
+      },
+      {
+        "type": "Microsoft.Insights/components",
+        "apiVersion": "2015-05-01",
+        "name": "[variables('appInsightsName')]",
+        "location": "[parameters('location')]",
+        "kind": "web",
+        "properties": {
+          "Application_Type": "web"
+        }
+      },
+      {
+        "type": "Microsoft.OperationalInsights/workspaces",
+        "apiVersion": "2015-11-01-preview",
+        "name": "[variables('opInsightsName')]",
+        "location": "[parameters('location')]",
+        "properties": {
+          "sku": {
+            "name": "pergb2018"
+          },
+          "retentionInDays": 30
+        }
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts",
+        "apiVersion": "2018-02-01",
+        "name": "[variables('storageAccountName')]",
+        "location": "[parameters('location')]",
+        "kind": "Storage",
+        "sku": {
+          "name": "[parameters('storageAccountType')]"
+        }
+      },
+      {
+        "apiVersion": "2018-02-01",
+        "type": "Microsoft.Web/serverfarms",
+        "kind": "app",
+        "name": "[variables('appServicePlanName')]",
+        "location": "[parameters('location')]",
+        "sku": {
+          "name": "[parameters('webAppSku')]"
+        }
+      },
+      {
+        "apiVersion": "2018-11-01",
+        "type": "Microsoft.Web/sites",
+        "kind": "app",
+        "name": "[variables('webAppName')]",
+        "location": "[parameters('location')]",
+        "identity": {
+          "type": "UserAssigned",
+          "userAssignedIdentities": {
+            "[resourceId(parameters('groupName'), 'Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('name'))]": {}
+          }
+        },
+        "properties": {
+          "serverFarmId": "[resourceId(parameters('groupName'), 'Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+        },
+        "resources": [
+          {
+            "apiVersion": "2018-11-01",
+            "type": "sourcecontrols",
+            "name": "web",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+              "[resourceId(parameters('groupName'), 'Microsoft.Web/sites', variables('webAppName'))]"
+            ],
+            "properties": {
+              "repoUrl": "[parameters('repoURL')]",
+              "branch": "[parameters('branch')]",
+              "isManualIntegration": true
+            }
+          },
+          {
+            "apiVersion": "2018-11-01",
+            "name": "appsettings",
+            "type": "config",
+            "dependsOn": [
+              "[resourceId(parameters('groupName'), 'Microsoft.Web/sites', variables('webAppName'))]"
+            ],
+            "properties": {
+              "PROJECT": "RelayBotSample/SampleBot.csproj",
+              "ApplicationInsights:InstrumentationKey": "[reference(concat('Microsoft.Insights/components/', variables('appInsightsName')), '2014-04-01').InstrumentationKey]",
+              "BlobStorageConnectionString": "",
+              "ContainerName": "dispatcherva",
+              "DynamicsBotId": "[parameters('pvaBotId')]",
+              "DynamicsBotName": "[parameters('pvaBotName')]",
+              "DynamicsBotTenantId": "[parameters('pvaBotTenantId')]",
+              "DynamicsBotTokenEndpoint": "https://powerva.microsoft.com/api/botmanagement/v1/directline/directlinetoken",
+              "AzureServicesAuthConnectionString": "[concat('RunAs=App;AppId=', reference(concat('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('name')), '2018-11-30').clientId)]"
+            }
+          }
+        ],
+        "dependsOn": [
+          "[resourceId(parameters('groupName'), 'Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+          "[resourceId(parameters('groupName'), 'Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('name'))]"
+        ]
+      },
+      {
+        "type": "Microsoft.KeyVault/vaults",
+        "name": "[variables('keyVaultName')]",
+        "apiVersion": "2015-06-01",
+        "location": "[parameters('location')]",
+        "properties": {
+          "enabledForDeployment": true,
+          "enabledForTemplateDeployment": true,
+          "enabledForVolumeEncryption": false,
+          "tenantId": "[subscription().tenantId]",
+          "accessPolicies": [
+            {
+              "tenantId": "[subscription().tenantId]",
+              "objectId": "[reference(concat('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('name')), '2018-11-30').objectId]",
+              "permissions": {
+                "keys": [
+                  "all"
+                ],
+                "secrets": [
+                  "all"
+                ]
+              }
+            }
+          ],
+          "sku": {
+            "name": "standard",
+            "family": "A"
+          }
+        }
+      }
+    ],
+    "outputs": {
+      "clientId": {
+        "type": "string",
+        "value": "[reference(concat('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('name')), '2018-11-30').clientId]"
+      }
+    }
+  }
+  

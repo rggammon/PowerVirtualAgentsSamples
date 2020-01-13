@@ -1,183 +1,156 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-        "groupLocation": {
-            "type": "string",
-            "metadata": {
-                "description": "Specifies the location of the Resource Group."
-            }
-        },
-        "groupName": {
-            "type": "string",
-            "metadata": {
-                "description": "Specifies the name of the Resource Group."
-            }
-        },
-        "appId": {
-            "type": "string",
-            "metadata": {
-                "description": "Active Directory App ID, set as MicrosoftAppId in the Web App's Application Settings."
-            }
-        },
-        "appSecret": {
-            "type": "string",
-            "metadata": {
-                "description": "Active Directory App Password, set as MicrosoftAppPassword in the Web App's Application Settings."
-            }
-        },
-        "botId": {
-            "type": "string",
-            "metadata": {
-                "description": "The globally unique and immutable bot ID. Also used to configure the displayName of the bot, which is mutable."
-            }
-        },
-        "botSku": {
-            "type": "string",
-            "metadata": {
-                "description": "The pricing tier of the Bot Service Registration. Acceptable values are F0 and S1."
-            }
-        },
-        "newAppServicePlanName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the App Service Plan."
-            }
-        },
-        "newAppServicePlanSku": {
-            "type": "object",
-            "defaultValue": {
-                "name": "S1",
-                "tier": "Standard",
-                "size": "S1",
-                "family": "S",
-                "capacity": 1
-            },
-            "metadata": {
-                "description": "The SKU of the App Service Plan. Defaults to Standard values."
-            }
-        },
-        "newAppServicePlanLocation": {
-            "type": "string",
-            "metadata": {
-                "description": "The location of the App Service Plan. Defaults to \"westus\"."
-            }
-        },
-        "newWebAppName": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "The globally unique name of the Web App. Defaults to the value passed in for \"botId\"."
-            }
-        }
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "groupName": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the name of the Resource Group."
+      }
     },
-    "variables": {
-        "appServicePlanName": "[parameters('newAppServicePlanName')]",
-        "resourcesLocation": "[parameters('newAppServicePlanLocation')]",
-        "webAppName": "[if(empty(parameters('newWebAppName')), parameters('botId'), parameters('newWebAppName'))]",
-        "siteHost": "[concat(variables('webAppName'), '.azurewebsites.net')]",
-        "botEndpoint": "[concat('https://', variables('siteHost'), '/api/messages')]"
+    "pvaBotId": {
+      "type": "string",
+      "metadata": {
+        "description": "Power Virtual Agent Bot Id"
+      }
     },
-    "resources": [
-        {
-            "name": "[parameters('groupName')]",
-            "type": "Microsoft.Resources/resourceGroups",
-            "apiVersion": "2018-05-01",
-            "location": "[parameters('groupLocation')]",
-            "properties": {
-            }
+    "pvaBotName": {
+      "type": "string",
+      "metadata": {
+        "description": "Power Virtual Agent Bot Name"
+      }
+    },
+    "pvaBotTenantId": {
+      "type": "string",
+      "metadata": {
+        "description": "Power Virtual Agent Bot Tenant Id"
+      }
+    },
+    "name": {
+      "type": "string",
+      "metadata": {
+        "description": "Base name of the resource such as web app name and app service plan"
+      },
+      "minLength": 2
+    },
+    "webAppSku": {
+      "type": "string",
+      "defaultValue": "S1",
+      "metadata": {
+        "description": "The SKU of App Service Plan, by default is Standard S1"
+      }
+    },
+    "speechServiceSku": {
+      "type": "string",
+      "defaultValue": "S0",
+      "metadata": {
+        "description": "The SKU of Cognitive Speech Service, by default is Standard S0"
+      }
+    },
+    "storageAccountType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "metadata": {
+        "description": "Storage account type"
+      },
+      "maxLength": 17
+    },
+    "location": {
+      "type": "string",
+      "allowedValues": [
+        "westus",
+        "westus2",
+        "eastus",
+        "eastus2",
+        "westeurope",
+        "northeurope",
+        "southeastasia"
+      ],
+      "metadata": {
+        "description": "Location for all resources"
+      }
+    },
+    "repoUrl": {
+      "type": "string",
+      "defaultValue": "https://github.com/rggammon/PowerVirtualAgentsSamples.git",
+      "metadata": {
+        "description": "The URL for the GitHub repository that contains the project to deploy."
+      }
+    },
+    "branch": {
+      "type": "string",
+      "defaultValue": "stable",
+      "metadata": {
+        "description": "The branch of the GitHub repository to use."
+      }
+    },
+    "uniquenessSuffix": {
+      "type": "string",
+      "defaultValue": "[take(uniqueString(deployment().name, parameters('groupName')), 7)]",
+      "metadata": {
+        "description": "A suffix to append to resource names, to avoid collisions with existing resources during deployment."
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "name": "[parameters('groupName')]",
+      "apiVersion": "2018-05-01",
+      "location": "[parameters('location')]"
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2018-05-01",
+      "name": "relayBotDeployment",
+      "resourceGroup": "[parameters('groupName')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/resourceGroups/', parameters('groupName'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "https://raw.githubusercontent.com/rggammon/PowerVirtualAgentsSamples/stable/RelayBotSample/DeploymentTemplates/template.json"
         },
-        {
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2018-05-01",
-            "name": "storageDeployment",
-            "resourceGroup": "[parameters('groupName')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/resourceGroups/', parameters('groupName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-                    "contentVersion": "1.0.0.0",
-                    "parameters": {},
-                    "variables": {},
-                    "resources": [
-                        {
-                            "comments": "Create a new App Service Plan",
-                            "type": "Microsoft.Web/serverfarms",
-                            "name": "[variables('appServicePlanName')]",
-                            "apiVersion": "2018-02-01",
-                            "location": "[variables('resourcesLocation')]",
-                            "sku": "[parameters('newAppServicePlanSku')]",
-                            "properties": {
-                                "name": "[variables('appServicePlanName')]"
-                            }
-                        },
-                        {
-                            "comments": "Create a Web App using the new App Service Plan",
-                            "type": "Microsoft.Web/sites",
-                            "apiVersion": "2015-08-01",
-                            "location": "[variables('resourcesLocation')]",
-                            "kind": "app",
-                            "dependsOn": [
-                                "[resourceId('Microsoft.Web/serverfarms/', variables('appServicePlanName'))]"
-                            ],
-                            "name": "[variables('webAppName')]",
-                            "properties": {
-                                "name": "[variables('webAppName')]",
-                                "serverFarmId": "[variables('appServicePlanName')]",
-                                "siteConfig": {
-                                    "appSettings": [
-                                        {
-                                            "name": "WEBSITE_NODE_DEFAULT_VERSION",
-                                            "value": "10.14.1"
-                                        },
-                                        {
-                                            "name": "MicrosoftAppId",
-                                            "value": "[parameters('appId')]"
-                                        },
-                                        {
-                                            "name": "MicrosoftAppPassword",
-                                            "value": "[parameters('appSecret')]"
-                                        }
-                                    ],
-                                    "cors": {
-                                        "allowedOrigins": [
-                                            "https://botservice.hosting.portal.azure.net",
-                                            "https://hosting.onecloud.azure-test.net/"
-                                        ]
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "apiVersion": "2017-12-01",
-                            "type": "Microsoft.BotService/botServices",
-                            "name": "[parameters('botId')]",
-                            "location": "global",
-                            "kind": "bot",
-                            "sku": {
-                                "name": "[parameters('botSku')]"
-                            },
-                            "properties": {
-                                "name": "[parameters('botId')]",
-                                "displayName": "[parameters('botId')]",
-                                "endpoint": "[variables('botEndpoint')]",
-                                "msaAppId": "[parameters('appId')]",
-                                "developerAppInsightsApplicationId": null,
-                                "developerAppInsightKey": null,
-                                "publishingCredentials": null,
-                                "storageResourceId": null
-                            },
-                            "dependsOn": [
-                                "[resourceId('Microsoft.Web/sites/', variables('webAppName'))]"
-                            ]
-                        }
-                    ],
-                    "outputs": {}
-                }
-            }
+        "parameters": {
+          "groupName": {
+            "value": "[parameters('groupName')]"
+          },
+          "pvaBotId": {
+            "value": "[parameters('pvaBotId')]"
+          },
+          "pvaBotName": {
+            "value": "[parameters('pvaBotName')]"
+          },
+          "pvaBotTenantId": {
+            "value": "[parameters('pvaBotTenantId')]"
+          },
+          "name": {
+            "value": "[parameters('name')]"
+          },
+          "webAppSku": {
+            "value": "[parameters('webAppSku')]"
+          },
+          "speechServiceSku": {
+            "value": "[parameters('speechServiceSku')]"
+          },
+          "storageAccountType": {
+            "value": "[parameters('storageAccountType')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "repoUrl": {
+            "value": "[parameters('repoUrl')]"
+          },
+          "branch": {
+            "value": "[parameters('branch')]"
+          },
+          "uniquenessSuffix": {
+            "value": "[parameters('uniquenessSuffix')]"
+          }
         }
-    ]
+      }
+    }
+  ]
 }

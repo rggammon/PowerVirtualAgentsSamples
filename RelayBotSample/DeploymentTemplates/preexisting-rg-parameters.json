@@ -1,39 +1,27 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-        "appId": {
-            "value": ""
-        },
-        "appSecret": {
-            "value": ""
-        },
-        "botId": {
-            "value": ""
-        },
-        "botSku": {
-            "value": ""
-        },
-        "newAppServicePlanName": {
-            "value": ""
-        },
-        "newAppServicePlanSku": {
-            "value": {
-                "name": "S1",
-                "tier": "Standard",
-                "size": "S1",
-                "family": "S",
-                "capacity": 1
-            }
-        },
-        "appServicePlanLocation": {
-            "value": ""
-        },
-        "existingAppServicePlan": {
-            "value": ""
-        },
-        "newWebAppName": {
-            "value": ""
-        }
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "name": {
+      "value": "rgammonrelaybot"
+    },
+    "webAppSku": {
+      "value": "S1"
+    },
+    "speechServiceSku": {
+      "value": "S0"
+    },
+    "location": {
+      "value": "westus"
+    },
+    "pvaBotId": {
+      "value": "36fec3c3-1e48-46e6-9b28-3602edfdfd78"
+    },
+    "pvaBotName": {
+      "value": "DispatcherVA"
+    },
+    "pvaBotTenantId": {
+      "value": "c12a7805-0d43-4f31-b52c-3db63e166fa7"
     }
+  }
 }
