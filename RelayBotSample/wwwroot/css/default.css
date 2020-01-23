@@ -1,16 +1,32 @@
-﻿html, body {
+﻿html, body, #app {
     font-family: Segoe UI,Frutiger,Frutiger Linotype,Dejavu Sans,Helvetica Neue,Arial,sans-serif;
     margin: 0px;
 }
 
+#app {
+    display: none;
+}
+
 .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
     background-color: darkblue;
     color: white;
     padding: 10px;
     margin: 0px;
 }
 
-#app {
+.navbar h1 {
+    margin-right: auto;
+}
+
+.navbar .loginLink {
+    color: white;
+    margin-left: auto;
+}
+
+.content {
     padding: 10px;
 }
 

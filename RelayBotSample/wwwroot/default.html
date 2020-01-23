@@ -2,52 +2,54 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Power Bot Channel Admin Portal</title>
+    <title>Channel Host</title>
     <link rel="stylesheet" type="text/css" href="css/default.css" />
 </head>
 <body>
-    <div class="navbar">
-        <h1>Power Bot Channel Admin Portal</h1>
-    </div>  
     <div id="app">
-        <h1>Complete Setup via Cloud Shell</h1>
-        <section>
-            <p>
-                Setup of this application must be completed via the Azure CLI, due to ARM template limitations.
-            </p>
-            <p>
-                If you don't have "az" installed, you can use a Azure Cloud Shell (choose "PowerShell").
-            </p>
-            <p>
-                <a href="https://shell.azure.com" target="_blank">
-                    <img title="Launch Azure Cloud Shell" alt="Embed launch" src="https://shell.azure.com/images/launchcloudshell.png" data-linktype="external">
-                </a>
-            </p>
-            <p>
-                Run the following commands:
-                <div class="code-snippet">
-                    cd ~/clouddrive<br />
-                    Invoke-WebRequest {{ setupScript }} -OutFile Setup-PostDeployment.ps1
-                    .\Setup-PostDeployment.ps1
+        <div class="navbar">
+            <h1>Custom Channel Host</h1>
+            <span><span v-if="signInName">{{signInName}} | </span><a class="loginLink" v-bind:href="signInName ? '/signout-oidc' : '/signin'">{{ signInName ? "Sign Out" : "Sign In" }}</a></span>
+        </div>
+        <div class="content">
+            <h1>Complete Custom Channel Host Setup via Cloud Shell</h1>
+            <section>
+                <p>
+                    Registration of Custom Channel Host must be completed via Azure PowerShell, due to ARM template limitations.
+                </p>
+                <p>
+                    If you don't have "Azure PowerShell" installed, you can use the Azure Cloud Shell button below (you can use the storage account for this app).
+                </p>
+                <p>
+                    <a href="https://shell.azure.com" target="_blank">
+                        <img title="Launch Azure Cloud Shell" alt="Embed launch" src="https://shell.azure.com/images/launchcloudshell.png" data-linktype="external">
+                    </a>
+                </p>
+                <p>
+                    Then, run the following commands to register this application in Azure Active Directory:
+                    <div class="code-snippet">
+                        cd ~/clouddrive<br />
+                        Invoke-WebRequest {{ setupScript }} -OutFile Create-AppRegistration.ps1<br />
+                        .\Setup-PostDeployment.ps1
+                    </div>
+                </p>
+            </section>
+
+            <h1>Azure Bot Channels Registration Configuration</h1>
+            <section>
+                <div>
+                    Configured: {{ areAzureBotChannelsConfigured }}
                 </div>
-            </p>
-        </section>
+            </section>
 
-        <h1>Azure Bot Channels Registration Configuration</h1>
-        <section>
-            <div>
-                Configured: {{ areAzureBotChannelsConfigured }}
-            </div>
-        </section>
-
-        <h1>Alexa</h1>
-        <section>
-            <div>
-                Configured: {{ isAlexaChannelConfigured }}
-            </div>
-        </section>
+            <h1>Alexa</h1>
+            <section>
+                <div>
+                    Configured: {{ isAlexaChannelConfigured }}
+                </div>
+            </section>
+        </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="scripts/default.js"></script>
 </body>

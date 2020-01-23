@@ -9,4 +9,6 @@
             el: '#app',
             data: data
         });
+
+        document.getElementById("app").style.display = "block";
     });

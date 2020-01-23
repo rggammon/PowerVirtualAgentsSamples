@@ -5,6 +5,8 @@ namespace SampleBot.Models
 {
     public class Configuration
     {
+        public string SignInName { get; set; }
+
         public bool AreAzureBotChannelsConfigured { get; set; }
 
         public bool IsAlexaChannelConfigured { get; set; }

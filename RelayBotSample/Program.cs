@@ -8,6 +8,8 @@ using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Logging;
+using System.Reflection;
 
 namespace Microsoft.PowerVirtualAgents.Samples.RelayBotSample
 {
@@ -26,10 +28,9 @@ namespace Microsoft.PowerVirtualAgents.Samples.RelayBotSample
                 {
                     var env = context.HostingEnvironment;
 
-                    var builtConfig = config.Build();
-
                     if (env.IsProduction())
                     {
+                        var builtConfig = config.Build();
                         var azureServiceTokenProvider = new AzureServiceTokenProvider(builtConfig["AzureServicesAuthConnectionString"]);
                         var keyVaultClient = new KeyVaultClient(
                             new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
@@ -38,6 +39,10 @@ namespace Microsoft.PowerVirtualAgents.Samples.RelayBotSample
                             $"https://{builtConfig["KeyVaultName"]}.vault.azure.net/",
                             keyVaultClient,
                             new DefaultKeyVaultSecretManager());
+                    }
+                    else if (env.IsDevelopment())
+                    {
+                        IdentityModelEventSource.ShowPII = true;
                     }
                 })
                 .UseStartup<Startup>();

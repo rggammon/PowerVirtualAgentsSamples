@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Identity.Web;
 using SampleBot.Models;
 
 namespace Microsoft.PowerVirtualAgents.Samples.RelayBotSample.Controllers
@@ -23,6 +24,8 @@ namespace Microsoft.PowerVirtualAgents.Samples.RelayBotSample.Controllers
         {
             return Json(new Configuration()
             {
+                SignInName = this.User.Identity.IsAuthenticated ?
+                    this.User.GetDisplayName() : null
             });
         }
     }
