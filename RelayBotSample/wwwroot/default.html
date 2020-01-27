@@ -8,17 +8,17 @@
 <body>
     <div id="app">
         <div class="navbar">
-            <h1>Custom Channel Host</h1>
+            <h1>Experimental Custom Channel Host</h1>
             <span><span v-if="signInName">{{signInName}} | </span><a class="loginLink" v-bind:href="signInName ? '/signout-oidc' : '/signin'">{{ signInName ? "Sign Out" : "Sign In" }}</a></span>
         </div>
         <div class="content">
-            <h1>Complete Custom Channel Host Setup via Cloud Shell</h1>
+            <h1>Complete Setup via Cloud Shell</h1>
             <section>
                 <p>
-                    Registration of Custom Channel Host must be completed via Azure PowerShell, due to ARM template limitations.
+                    Application registration into AzureAD must be completed via Azure PowerShell.
                 </p>
                 <p>
-                    If you don't have "Azure PowerShell" installed, you can use the Azure Cloud Shell button below (you can use the storage account for this app).
+                    If you don't have "Azure PowerShell" installed, you can use the Azure Cloud Shell button below.
                 </p>
                 <p>
                     <a href="https://shell.azure.com" target="_blank">
@@ -30,7 +30,7 @@
                     <div class="code-snippet">
                         cd ~/clouddrive<br />
                         Invoke-WebRequest {{ setupScript }} -OutFile Create-AppRegistration.ps1<br />
-                        .\Setup-PostDeployment.ps1
+                        .\Create-AppRegistration.ps1
                     </div>
                 </p>
             </section>

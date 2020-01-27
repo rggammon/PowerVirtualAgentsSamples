@@ -4,8 +4,12 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
+using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using SampleBot.Extensions;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SampleBot.Controllers
 {
@@ -13,7 +17,14 @@ namespace SampleBot.Controllers
     [Route("signin")]
     public class SignInController : Controller
     {
-        public IActionResult PostAsync()
+        private ITokenAcquisition _tokenAcquisition;
+
+        public SignInController(ITokenAcquisition tokenAcquisition)
+        {
+            _tokenAcquisition = tokenAcquisition;
+        }
+
+        public IActionResult Get()
         {
             if (User.Identity.IsAuthenticated)
             {
@@ -22,16 +33,34 @@ namespace SampleBot.Controllers
             else
             {
                 var properties = new AuthenticationProperties();
+                return Challenge(properties);
+            }
+        }
 
-                //var scopes = new List<string>() { 
-                //    "openid", 
-                //    "profile",
-                //};
+        [Route("arm")]
+        public async Task<IActionResult> Arm()
+        {
+            bool challenge = true;
 
-                //properties.SetParameter<ICollection<string>>(OpenIdConnectParameterNames.Scope, scopes);
+            if (User.Identity.IsAuthenticated)
+            {
+                var token = await _tokenAcquisition.GetArmTokenAsync();
+                if (!string.IsNullOrEmpty(token))
+                {
+                    challenge = false;
+                }
+            }
+            
+            if (challenge)
+            {
+                var properties = new AuthenticationProperties();
+
+                properties.SetParameter<ICollection<string>>(OpenIdConnectParameterNames.Scope, _tokenAcquisition.GetArmScope());
 
                 return Challenge(properties);
             }
+
+            return Redirect("/");
         }
     }
 }

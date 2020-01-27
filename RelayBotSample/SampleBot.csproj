@@ -27,10 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Resources\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="wwwroot\Create-AppRegistration.ps1">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>

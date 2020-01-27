@@ -41,7 +41,7 @@ namespace Microsoft.PowerVirtualAgents.Samples.RelayBotSample
             });
 
             services.AddMicrosoftIdentityPlatformAuthentication(Configuration)
-                .AddMsal(Configuration, new string[] { "User.Read" })
+                .AddMsal(Configuration, new string[] { "openid", "profile", "User.Read" })
                 .AddSessionTokenCaches();
 
             services.AddAuthorization();
