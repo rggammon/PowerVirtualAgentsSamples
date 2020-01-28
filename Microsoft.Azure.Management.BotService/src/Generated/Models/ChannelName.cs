@@ -40,7 +40,11 @@ namespace Microsoft.Azure.Management.BotService.Models
         [EnumMember(Value = "DirectLineChannel")]
         DirectLineChannel,
         [EnumMember(Value = "SmsChannel")]
-        SmsChannel
+        SmsChannel,
+        [EnumMember(Value = "DirectLineSpeechChannel")]
+        DirectLineSpeechChannel,
+        [EnumMember(Value = "TelephonyChannel")]
+        TelephonyChannel,
     }
     internal static class ChannelNameEnumExtension
     {
@@ -73,6 +77,10 @@ namespace Microsoft.Azure.Management.BotService.Models
                     return "DirectLineChannel";
                 case ChannelName.SmsChannel:
                     return "SmsChannel";
+                case ChannelName.DirectLineSpeechChannel:
+                    return "DirectLineSpeechChannel";
+                case ChannelName.TelephonyChannel:
+                    return "TelephonyChannel";
             }
             return null;
         }
@@ -101,6 +109,10 @@ namespace Microsoft.Azure.Management.BotService.Models
                     return ChannelName.DirectLineChannel;
                 case "SmsChannel":
                     return ChannelName.SmsChannel;
+                case "DirectLineSpeechChannel":
+                    return ChannelName.DirectLineSpeechChannel;
+                case "TelephonyChannel":
+                    return ChannelName.TelephonyChannel;
             }
             return null;
         }

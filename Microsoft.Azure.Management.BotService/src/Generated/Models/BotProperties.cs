@@ -152,6 +152,12 @@ namespace Microsoft.Azure.Management.BotService.Models
         public string LuisKey { get; set; }
 
         /// <summary>
+        /// Gets or sets if streaming is supported
+        /// </summary>
+        [JsonProperty(PropertyName = "isStreamingSupported")]
+        public bool IsStreamingSupported { get; set; }
+
+        /// <summary>
         /// Validate the object.
         /// </summary>
         /// <exception cref="ValidationException">
