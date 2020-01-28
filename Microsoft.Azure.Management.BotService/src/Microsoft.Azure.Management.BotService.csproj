@@ -1,8 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <!-- Please do not move/edit code below this line -->
-  <Import Project="$(RepoEngPath)/mgmt/AzSdk.reference.props" />
-  <!-- Please do not move/edit code below this line -->
-	
+﻿<Project Sdk="Microsoft.NET.Sdk">	
   <PropertyGroup>
     <PackageId>Microsoft.Azure.Management.BotService</PackageId>
     <Description>Microsoft Azure Management Bot Service Library</Description>
@@ -16,7 +12,7 @@
     </PackageReleaseNotes>
   </PropertyGroup>
   <PropertyGroup>
-    <TargetFrameworks>$(SdkTargetFx)</TargetFrameworks>
+    <TargetFrameworks>netstandard1.4</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="[2.28.3]" />
@@ -50,9 +46,4 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
-  <!-- Please do not move/edit code below this line -->
-  <Import Condition=" Exists('$([MSBuild]::GetPathOfFileAbove(AzSdk.RP.props))') " Project="$([MSBuild]::GetPathOfFileAbove('AzSdk.RP.props'))" />
-  <!-- Please do not move/edit code above this line -->
-
 </Project>
