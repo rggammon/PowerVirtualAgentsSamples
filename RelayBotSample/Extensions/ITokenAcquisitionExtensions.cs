@@ -3,40 +3,48 @@
 
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SampleBot.Extensions
 {
     public static class ITokenAcquisitionExtensions
     {
-        private const string _armScope = "https://management.core.windows.net/user_impersonation";
-        private const string _cdsScope = "00000007-0000-0000-c000-000000000000/user_impersonation";
-
-        public static string[] GetArmScope(this ITokenAcquisition tokenAcquisition)
+        private static readonly string[] _armScopes = new string[] { "openid", "https://management.core.windows.net/user_impersonation" };
+        private static readonly string[] _cdsScopes = new string[] { "openid", "00000007-0000-0000-c000-000000000000/user_impersonation" };
+        private static readonly string[] _graphScopes = new string[] { "openid", "profile", "User.Read", "Application.ReadWrite.All" };
+        
+        public static string[] GetArmScopes(this ITokenAcquisition tokenAcquisition)
         {
-            return new string[]
-            {
-                _armScope
-            };
+            return _armScopes;
+        }
+
+        public static string[] GetCdsScopes(this ITokenAcquisition tokenAcquisition)
+        {
+            return _cdsScopes;
+        }
+
+        public static string[] GetGraphScopes(this ITokenAcquisition tokenAcquisition)
+        {
+            return _graphScopes;
         }
 
         public static async Task<string> GetArmTokenAsync(this ITokenAcquisition tokenAcquisition)
         {
-            return await GetAccessTokenAsync(tokenAcquisition, _armScope);
+            return await GetAccessTokenAsync(tokenAcquisition, _armScopes);
         }
 
         public static async Task<string> GetCdsTokenAsync(this ITokenAcquisition tokenAcquisition)
         {
-            return await GetAccessTokenAsync(tokenAcquisition, _cdsScope);
+            return await GetAccessTokenAsync(tokenAcquisition, _cdsScopes);
         }
 
-        private static async Task<string> GetAccessTokenAsync(ITokenAcquisition tokenAcquisition, string scope)
+        public static async Task<string> GetGraphTokenAsync(this ITokenAcquisition tokenAcquisition)
         {
-            var scopes = new List<string>() {
-                scope
-            };
+            return await GetAccessTokenAsync(tokenAcquisition, _graphScopes);
+        }
 
+        private static async Task<string> GetAccessTokenAsync(ITokenAcquisition tokenAcquisition, string[] scopes)
+        {
             string token = null;
             try
             {

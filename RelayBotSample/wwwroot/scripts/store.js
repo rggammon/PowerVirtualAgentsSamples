@@ -1,0 +1,3 @@
+﻿var store = {
+    signInName: null
+};

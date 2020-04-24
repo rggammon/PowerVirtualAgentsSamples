@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +14,8 @@ using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.TokenCacheProviders.Session;
 using Microsoft.PowerVirtualAgents.Samples.RelayBotSample.Bots;
 using SampleBot.Configurations;
+using SampleBot.Extensions;
+using System;
 
 namespace Microsoft.PowerVirtualAgents.Samples.RelayBotSample
 {
@@ -41,7 +44,11 @@ namespace Microsoft.PowerVirtualAgents.Samples.RelayBotSample
             });
 
             services.AddMicrosoftIdentityPlatformAuthentication(Configuration)
-                .AddMsal(Configuration, new string[] { "openid", "profile", "User.Read" })
+                .AddMsal(Configuration, new[] {
+                    ITokenAcquisitionExtensions.GetGraphScopes(null),
+                    ITokenAcquisitionExtensions.GetArmScopes(null),
+                    ITokenAcquisitionExtensions.GetCdsScopes(null),
+                })
                 .AddSessionTokenCaches();
 
             services.AddAuthorization();
@@ -82,7 +89,17 @@ namespace Microsoft.PowerVirtualAgents.Samples.RelayBotSample
             }
 
             app.UseDefaultFiles();
-            app.UseStaticFiles();
+
+            var provider = new FileExtensionContentTypeProvider();
+            provider.Mappings[".vue"] = "text/x-template";
+            provider.Mappings[".ps1"] = "text/plain";
+
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                ContentTypeProvider = provider,
+                ServeUnknownFileTypes = true,
+                DefaultContentType = "text/plain"
+            });
 
             app.UseWebSockets();
 

@@ -42,7 +42,7 @@ namespace Microsoft.Identity.Web
         /// }
         /// </code>
         /// </example>
-        Task AddAccountToCacheFromAuthorizationCodeAsync(AuthorizationCodeReceivedContext context, IEnumerable<string> scopes);
+        Task AddAccountToCacheFromAuthorizationCodeAsync(AuthorizationCodeReceivedContext context, IEnumerable<string[]> scopes);
 
         /// <summary>
         /// Typically used from an ASP.NET Core Web App or Web API controller, this method gets an access token 

@@ -113,9 +113,9 @@ namespace Microsoft.Identity.Web
         /// Add MSAL support to the Web App or Web API
         /// </summary>
         /// <param name="services">Service collection to which to add authentication</param>
-        /// <param name="initialScopes">Initial scopes to request at sign-in</param>
+        /// <param name="initialResourcesAndScopes">Initial resources and scopes to request at sign-in</param>
         /// <returns></returns>
-        public static IServiceCollection AddMsal(this IServiceCollection services, IConfiguration configuration, IEnumerable<string> initialScopes, string configSectionName = "AzureAd")
+        public static IServiceCollection AddMsal(this IServiceCollection services, IConfiguration configuration, IEnumerable<string[]> initialResourcesAndScopes, string configSectionName = "AzureAd")
         {
             // Ensure that configuration options for MSAL.NET, HttpContext accessor and the Token acquisition service
             // (encapsulating MSAL.NET) are available through dependency injection
@@ -131,13 +131,16 @@ namespace Microsoft.Identity.Web
                 // This scope is needed to get a refresh token when users sign-in with their Microsoft personal accounts
                 // (it's required by MSAL.NET and automatically provided when users sign-in with work or school accounts)
                 options.Scope.Add(OidcConstants.ScopeOfflineAccess);
-                if (initialScopes != null)
+                if (initialResourcesAndScopes != null)
                 {
-                    foreach (string scope in initialScopes)
+                    foreach (string[] scopes in initialResourcesAndScopes)
                     {
-                        if (!options.Scope.Contains(scope))
+                        foreach (string scope in scopes)
                         {
-                            options.Scope.Add(scope);
+                            if (!options.Scope.Contains(scope))
+                            {
+                                options.Scope.Add(scope);
+                            }
                         }
                     }
                 }
@@ -148,7 +151,7 @@ namespace Microsoft.Identity.Web
                 options.Events.OnAuthorizationCodeReceived = async context =>
                 {
                     var tokenAcquisition = context.HttpContext.RequestServices.GetRequiredService<ITokenAcquisition>();
-                    await tokenAcquisition.AddAccountToCacheFromAuthorizationCodeAsync(context, options.Scope).ConfigureAwait(false);
+                    await tokenAcquisition.AddAccountToCacheFromAuthorizationCodeAsync(context, initialResourcesAndScopes).ConfigureAwait(false);
                     await handler(context).ConfigureAwait(false);
                 };
 

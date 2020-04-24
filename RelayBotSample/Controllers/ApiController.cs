@@ -1,19 +1,21 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Management.BotService;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Graph;
 using Microsoft.Identity.Web;
 using Microsoft.Rest;
 using SampleBot.Extensions;
-using SampleBot.Models;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace Microsoft.PowerVirtualAgents.Samples.RelayBotSample.Controllers
 {
-    [Route("api/configuration")]
+    [Route("api")]
     [ApiController]
     public class ApiController : Controller
     {
@@ -27,77 +29,80 @@ namespace Microsoft.PowerVirtualAgents.Samples.RelayBotSample.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAsync()
+        [Route("me")]
+        public IActionResult GetConfigurationAsync()
         {
-            bool areAzureBotChannelsConfigured = false;
-
-            if (User.Identity.IsAuthenticated)
-            {
-                var token = await _tokenAcquisition.GetArmTokenAsync();
-                if (token != null)
-                {
-                    using (var client = new AzureBotServiceClient(new TokenCredentials(token)))
-                    {
-                        client.SubscriptionId = _configuration["SubscriptionId"];
-                        var page = await client.Bots
-                            .ListByResourceGroupAsync(_configuration["ResourceGroupName"]);
-
-                        areAzureBotChannelsConfigured = page.Any();
-
-                        if (!areAzureBotChannelsConfigured)
-                        {
-                            var bot = await client.Bots
-                                .CreateAsync(
-                                    _configuration["ResourceGroupName"],
-                                    "rgammonrelaybot1-bot-xyz123",
-                                    new Azure.Management.BotService.Models.Bot()
-                                    {
-                                        Properties = new Azure.Management.BotService.Models.BotProperties
-                                        {
-                                            // DeveloperAppInsightsApplicationId { get; set; }
-                                            // DeveloperAppInsightsApiKey { get; set; }
-                                            // DeveloperAppInsightKey { get; set; }
-                                            MsaAppId = _configuration["MicrosoftAppId"],
-                                            Endpoint = "https://rgammonrelaybot-webapp-smxylql.azurewebsites.net/api/messages",
-                                            Description = "A bot",
-                                            DisplayName = "A bot"
-                                        }
-                                    }
-                                );
-
-                            await client.Channels
-                                .CreateAsync(
-                                    _configuration["ResourceGroupName"],
-                                    "rgammonrelaybot1-bot-xyz123",
-                                    
-
-                                    );
-                        }
-                    }
-                }
-            }
-
-            return Json(new Configuration()
+            return Json(new
             {
                 SignInName = this.User.Identity.IsAuthenticated ?
-                    this.User.GetDisplayName() : null,
-                AreAzureBotChannelsConfigured = areAzureBotChannelsConfigured 
+                    this.User.GetDisplayName() : null
             });
         }
 
-        [HttpPost]
-        public async Task<IActionResult> ConfigureAzureBotServiceAsync()
+        [HttpGet]
+        [Authorize]
+        [Route("channelapps")]
+        public async Task<IActionResult> GetChannelAppsAsync()
         {
-            var token = await _tokenAcquisition.GetArmTokenAsync();
-            if (token != null)
+            var token = await _tokenAcquisition.GetGraphTokenAsync();
+            if (string.IsNullOrEmpty(token))
             {
                 return Unauthorized();
             }
 
-            using (var client = new AzureBotServiceClient(new TokenCredentials(token)))
+            var graphClient = new GraphServiceClient(new DelegateAuthenticationProvider(requestMessage =>
             {
-                client.SubscriptionId = _configuration["SubscriptionId"];
+                requestMessage
+                    .Headers
+                    .Authorization = new AuthenticationHeaderValue("Bearer", token);
+                
+                return Task.CompletedTask;
+            }));
+
+            var page = await graphClient
+                .Applications
+                .Request()
+                .Filter("tags/any(t:t%20eq%20'PVAChannelApp')")
+                .GetAsync();
+
+            var value = page
+                .Select(a => new
+                {
+                    AppId = a.AppId,
+                    DisplayName = a.DisplayName,
+                    ResourceGroup = a.Tags.Where(t => t.StartsWith("/subscription")).FirstOrDefault()
+                })
+                .ToArray();
+
+            return Json(new
+            { 
+                Value = value
+            });
+        }
+
+        [Authorize]
+        [Route("channelSolution/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}")]
+        public async Task<IActionResult> GetChannelSolutionAsync(string subscriptionId, string resourceGroup)
+        {
+            var armToken = await _tokenAcquisition.GetArmTokenAsync();
+            if (string.IsNullOrEmpty(armToken))
+            {
+                return Unauthorized();
             }
+
+            Microsoft.Azure.Management.BotService.Models.Bot bot;
+            using (var client = new AzureBotServiceClient(new TokenCredentials(armToken)))
+            {
+                client.SubscriptionId = subscriptionId;
+                var page = await client.Bots
+                    .ListByResourceGroupAsync(resourceGroup);
+                bot = page.FirstOrDefault();
+            }
+
+            return Json(new 
+            {
+                BotName = bot.Properties.DisplayName
+            });
         }
     }
 }

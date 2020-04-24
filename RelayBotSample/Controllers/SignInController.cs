@@ -4,7 +4,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using SampleBot.Extensions;
@@ -55,12 +54,39 @@ namespace SampleBot.Controllers
             {
                 var properties = new AuthenticationProperties();
 
-                properties.SetParameter<ICollection<string>>(OpenIdConnectParameterNames.Scope, _tokenAcquisition.GetArmScope());
+                properties.SetParameter<ICollection<string>>(OpenIdConnectParameterNames.Scope, _tokenAcquisition.GetArmScopes());
 
                 return Challenge(properties);
             }
 
             return Redirect("/");
         }
+
+        [Route("graph")]
+        public async Task<IActionResult> Graph()
+        {
+            bool challenge = true;
+
+            if (User.Identity.IsAuthenticated)
+            {
+                var token = await _tokenAcquisition.GetGraphTokenAsync();
+                if (!string.IsNullOrEmpty(token))
+                {
+                    challenge = false;
+                }
+            }
+
+            if (challenge)
+            {
+                var properties = new AuthenticationProperties();
+
+                properties.SetParameter<ICollection<string>>(OpenIdConnectParameterNames.Scope, _tokenAcquisition.GetGraphScopes());
+
+                return Challenge(properties);
+            }
+
+            return Redirect("/");
+        }
+
     }
 }

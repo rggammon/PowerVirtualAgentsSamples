@@ -95,16 +95,16 @@ namespace Microsoft.Identity.Web
         /// }
         /// </code>
         /// </example>
-        public async Task AddAccountToCacheFromAuthorizationCodeAsync(AuthorizationCodeReceivedContext context, IEnumerable<string> scopes)
+        public async Task AddAccountToCacheFromAuthorizationCodeAsync(AuthorizationCodeReceivedContext context, IEnumerable<string[]> scopesByResource)
         {
             if (context == null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (scopes == null)
+            if (scopesByResource == null)
             {
-                throw new ArgumentNullException(nameof(scopes));
+                throw new ArgumentNullException(nameof(scopesByResource));
             }
 
             try
@@ -126,12 +126,19 @@ namespace Microsoft.Identity.Web
                 // Do not share the access token with ASP.NET Core otherwise ASP.NET will cache it and will not send the OAuth 2.0 request in
                 // case a further call to AcquireTokenByAuthorizationCodeAsync in the future is required for incremental consent (getting a code requesting more scopes)
                 // Share the ID Token though
-                var result = await application
-                    .AcquireTokenByAuthorizationCode(scopes.Except(_scopesRequestedByMsalNet), context.ProtocolMessage.Code)
-                    .ExecuteAsync()
-                    .ConfigureAwait(false);
+                foreach (var scopes in scopesByResource)
+                {
+                    var result = await application
+                        .AcquireTokenByAuthorizationCode(scopes.Except(_scopesRequestedByMsalNet), context.ProtocolMessage.Code)
+                        .ExecuteAsync()
+                        .ConfigureAwait(false);
 
-                context.HandleCodeRedemption(null, result.IdToken);
+                    context.HandleCodeRedemption(null, result.IdToken);
+
+                    // A code cannot be redeemed more than once. A refresh token could be used for this,
+                    // but there is no point since access tokens are not stored at code redemption time.
+                    break;
+                }
             }
             catch (MsalException ex)
             {

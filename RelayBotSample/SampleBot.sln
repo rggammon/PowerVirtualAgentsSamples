@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleBot", "SampleBot.cspr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Identity.Web", "..\Microsoft.Identity.Web\Microsoft.Identity.Web.csproj", "{0C9B3DB5-4204-47A6-810E-2DB555592125}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.Management.BotService", "..\Microsoft.Azure.Management.BotService\src\Microsoft.Azure.Management.BotService.csproj", "{96A8BFE1-02C5-4EF3-9995-079C4AE17254}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{0C9B3DB5-4204-47A6-810E-2DB555592125}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C9B3DB5-4204-47A6-810E-2DB555592125}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C9B3DB5-4204-47A6-810E-2DB555592125}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96A8BFE1-02C5-4EF3-9995-079C4AE17254}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96A8BFE1-02C5-4EF3-9995-079C4AE17254}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96A8BFE1-02C5-4EF3-9995-079C4AE17254}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96A8BFE1-02C5-4EF3-9995-079C4AE17254}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
